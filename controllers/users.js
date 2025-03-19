@@ -1,7 +1,7 @@
 const Person = require('../db')
 
 //Obtiene los contactos de la agenda 
-const getContacts = (require, response) => {
+const getContacts = (request, response) => {
 
   Person.find({}).then(result => {
     
@@ -19,31 +19,46 @@ const getContacts = (require, response) => {
   })
 }
 
-const information = (require, response) => {
+const information = (request, response) => {
     const now = new Date()
-    const numberUsers = usuarios.length
 
-    return response.status(200).send(`
-        <p>Phonebook has into for ${numberUsers} people </p>
-        <br />
-        <p>${now} </p>
+
+    Person.find({}).then(result => {
+      return response.status(200).send(`
+          <p> Phonebook has into for ${result.length} people </p>
+          <br/>
+          <p>${now} </p>
         `)
+    }).catch(error => {
+      return response.status(500).json({
+        message: 'Ocurrio un error en el servidor',
+        success: false
+      })
+    })
 }
 
 const getContact = (request, response) => {
-  const id = Number(request.params.id)
-  const contact = usuarios.find(user => user.id === id)
-  if(!contact){
+  const id = request.params.id
+
+  Person.findById(id).then(result => {
+    if(result){
+      return response.status(200).json({
+        message: 'Usuario obtenido con exito',
+        success: true,
+        result
+      })
+    }
+
     return response.status(404).json({
-      message: 'El contacto no se encuentra registrado',
+      message: 'El usuario no se encuentra registrado',
       success: false
     })
-  }
-
-  return response.status(200).json({
-    message:'Se obtuvo con exito el contacto',
-    success: true,
-    contact
+  }).catch(error => {
+    console.log(error)
+    return response.status(400).json({
+      message: 'Mal formato de id',
+      success: false
+    })
   })
 }
 
@@ -98,4 +113,30 @@ const addContact = (request, response) => {
   })
 }
 
-module.exports = {getContacts, information, getContact, deleteContact, addContact}
+
+const updateContact = (request, response) => {
+  const id = request.params.id
+  const {name, number} = request.body
+
+  Person.findByIdAndUpdate({_id: id},{name, number}, {new: true, runValidators:true, context:'query'})
+  .then(result => {
+    if(result){
+      return response.status(200).json({
+        message: 'Contacto agregado con exito',
+        success: true
+      })
+    }
+
+    return response.status(404).json({
+      message: 'Contacto No se encuentra registrado',
+      success: true
+    })
+  }).catch(error => {
+    return response.status(400).json({
+      message: error.message,
+      success: false
+    })
+  })
+}
+
+module.exports = {getContacts, information, getContact, deleteContact, addContact, updateContact}
