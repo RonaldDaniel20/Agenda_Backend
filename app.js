@@ -4,11 +4,13 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
 
+require('dotenv').config()
+
 
 app.use(bodyParser.json())
 
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONT_URL,
     optionsSuccessStatus: 200
 }
 
