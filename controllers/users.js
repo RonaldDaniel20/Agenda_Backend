@@ -48,56 +48,53 @@ const getContact = (request, response) => {
 }
 
 const deleteContact = (request, response) => {
-  const id = Number(request.params.id)
-  const contact = usuarios.find(user => user.id === id)
-  if(!contact){
+  const id = request.params.id
+
+  Person.findOneAndDelete({_id:id}).then(result => {
+    if(result){
+      return response.status(200).json({
+        message: 'Contacto eliminado con exito',
+        success: true
+      })
+    }
+
     return response.status(404).json({
-      message: 'El contacto que intentas eliminar no se encuentra registrado',
+      message: 'El usuario no se encuentra registrado',
       success: false
     })
-  }
-
-  usuarios = usuarios.filter(user => user.id !== id)
-  return response.status(200).json({
-    message: "Usuario eliminado con exito",
-    success: true
+  }).catch(error => {
+    return response.status(400).json({
+      message: 'Formato de id incorrecto',
+      success: false
+    })
   })
 }
 
 const addContact = (request, response) => {
-  const contact = request.body
-  if(!contact.name || !contact.number){
+  const {name, number }= request.body
+  if(!name || !number){
     return response.status(400).json({
       message: 'Faltan datos obligatorios',
       success: false
     })
   }
 
-  if(contact.name){
-    const user = usuarios.find(user => user.name === contact.name)
-    if(user){
-      return response.status(409).json({
-        message: 'El usuario ya se encuentra registrado',
-        success: false
-      })
-    }
-  }
+  const contact = new Person({
+    name: name,
+    number: number
+  })
 
-  const id = usuarios.length > 0 
-    ? Math.max(...usuarios.map(user => user.id))
-    :0
+  contact.save().then(result => {
+    return response.status(200).json({
+      message: 'Contacto agregado con exito',
+      success: true
+    })
+  }).catch(err => {
 
-  const newContact = {
-    name: contact.name,
-    number: contact.number,
-    id: id + 1
-  }
-
-  usuarios = usuarios.concat(newContact)
-
-  return response.status(200).json({
-    message: 'Usuario creado con exito',
-    success: true
+    return response.status(400).json({
+      message: err.message,
+      success: false
+    })
   })
 }
 
