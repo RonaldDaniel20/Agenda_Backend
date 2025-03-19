@@ -1,36 +1,22 @@
-
-
-let usuarios = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
+const Person = require('../db')
 
 //Obtiene los contactos de la agenda 
 const getContacts = (require, response) => {
 
-    response.status(200).json({
-        message: 'Usuarios obtenidos con exito',
-        success: true,
-        usuarios
+  Person.find({}).then(result => {
+    
+    return response.status(200).json({
+      message: 'Contactos obtenidos con exito',
+      success: true,
+      result
     })
+  }).catch(error => {
+    console.log(error.message)
+    return response.status(500).json({
+      message: 'Ocurrior un error en el servidor',
+      success: false
+    })
+  })
 }
 
 const information = (require, response) => {
